@@ -123,3 +123,29 @@ curl -s -X POST http://127.0.0.1:4000/api/commands \
 
 **回滚**：`.backup-归并前-20261014/` 里有归并前后的两份 `project.json`、旧启动器/连接器/客户端源码、
 旧的工作台 `app.py`，以及被退役的 skill 镜像（在废纸篓：`~/.Trash/jianyingcut-references-app-20261014-*`）。
+
+---
+
+## 六、版本管理（git）
+
+已初始化成 git 仓库（分支 `main`），远程 `git@github.com:2448322800/jianyingcut.git`（**私有**）。
+首次提交 62 个文件、`.git` 约 1.1M。SSH 通道已实测通过。
+
+**首次推送前，先在网页上建一个空仓库**（仓库还没建时 `git push` 会报 `Repository not found`）：
+
+1. 打开 <https://github.com/new> → 名字填 `jianyingcut` → 选 **Private**。
+2. **不要**勾选 `Add a README file` / `.gitignore` / `license`（勾了会产生冲突，得先 pull）。
+3. 创建后回来执行：
+
+```bash
+cd ~/Desktop/06\ 工具与脚本/剪映Cut
+git push -u origin main
+```
+
+**已排除在版本之外**：`app/node_modules/`（169M）、`app/web/dist/`、`app/server/data/`（工程状态）、
+`app/server/media/`（上传素材）、`app/samples/`、`.backup-*/`、`*.log`、`*.pid`。
+它们要么能重建，要么是本机运行数据。
+
+**提交身份**是**仓库级**的（`2448322800` + GitHub noreply 邮箱），没有改你的全局配置 ——
+也就是说别的仓库提交时仍会因缺少身份而报错，需要时再单独设。
+
