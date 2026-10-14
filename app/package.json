@@ -1,0 +1,27 @@
+{
+  "name": "ai-cut",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "AI 可操作的网页剪辑工作台 — 命令层先行，UI 与 AI 共用一套命令",
+  "workspaces": [
+    "shared",
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm run build:shared && concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "npm run dev --workspace @ai-cut/server",
+    "dev:web": "npm run dev --workspace @ai-cut/web",
+    "build:shared": "npm run build --workspace @ai-cut/shared",
+    "build": "npm run build:shared && npm run build --workspace @ai-cut/server && npm run build --workspace @ai-cut/web",
+    "start": "npm run start --workspace @ai-cut/server",
+    "typecheck": "npm run build:shared && npm run typecheck --workspace @ai-cut/server && npm run typecheck --workspace @ai-cut/web",
+    "check": "npm run build:shared && node shared/test/check.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "samples": "node scripts/make-samples.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
