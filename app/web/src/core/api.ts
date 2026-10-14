@@ -176,4 +176,11 @@ export const api = {
 
   /** SSE 地址。EventSource 只能 GET，所以 CORS 由后端在 SSE 响应头里单独处理。 */
   eventsUrl: (): string => `${API_BASE}/api/events`,
+
+  /**
+   * 关闭剪辑台服务进程（顶栏「关闭程序」按钮）。
+   * 后端会先落盘工程状态再退出，响应返回时关停已在排队，所以调用方看到 ok 就直接切到「已关闭」页。
+   */
+  shutdown: (): Promise<{ ok: boolean; msg: string }> =>
+    requestPost<{ ok: boolean; msg: string }>('/api/system/shutdown', {}),
 };

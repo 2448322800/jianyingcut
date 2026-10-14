@@ -18,6 +18,10 @@ async function build(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false, // 用自己的结构化 JSON logger，保证每条日志都带 requestId
     bodyLimit: 1024 * 1024,
+    // 停机时直接掐掉还挂着的连接。页面上「关闭程序」按钮会用到：
+    // 浏览器那边有一条 SSE 长连接（/api/events），默认策略下它是「非空闲」连接，
+    // server.close() 会一直等它 —— 表现为点了关闭要等 10 秒才被强制退出。
+    forceCloseConnections: true,
     genReqId: (req) => {
       const header = req.headers['x-request-id'];
       if (typeof header === 'string' && header.length > 0 && header.length <= 64) return header;
@@ -93,6 +97,28 @@ async function build(): Promise<FastifyInstance> {
       return reply.status(503).send({ status: 'not_ready', reason: '存储目录不可写' });
     }
     return { status: 'ready', rev: projectRepo.get().rev };
+  });
+
+  // ── 关闭程序（页面顶栏的「关闭程序」按钮）────────────────────
+  // 有副作用，所以用 POST 而不是 GET（避免被预取/刷新误触发）；
+  // 并**强制要求 JSON 请求体**：跨站的「简单请求」（form/text-plain/multipart）
+  // 发不出 application/json，因此别的网页没法偷偷把本地服务关掉 ——
+  // CORS 白名单只能挡住「读响应」，挡不住「发出请求」这一步。
+  app.post('/api/system/shutdown', async (req, reply) => {
+    const contentType = req.headers['content-type'] ?? '';
+    if (!contentType.includes('application/json')) {
+      return reply.status(415).send({
+        error: {
+          code: 'UNSUPPORTED_MEDIA_TYPE',
+          message: '需要 Content-Type: application/json',
+          requestId: req.id,
+        },
+      });
+    }
+    // 先把响应发出去，再停机：立刻关会把这一个请求也掐掉，
+    // 前端看到的就是「网络错误」而不是「已关闭」。
+    setTimeout(() => void shutdown('api'), 200).unref();
+    return { ok: true, msg: '正在关闭剪辑台…' };
   });
 
   // ── 前端静态产物（可选）──────────────────────────────────
